@@ -24,12 +24,18 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Adapted from [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Installation
 
 ```bash
 $ npm install
+```
+
+## Local Env Setup
+
+```bash
+$ npm run db:dev:restart
 ```
 
 ## Running the app
