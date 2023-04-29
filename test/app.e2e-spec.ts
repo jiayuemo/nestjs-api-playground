@@ -4,6 +4,7 @@ import * as pactum from 'pactum';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from 'src/auth/dto';
+import { EditUserDto } from 'src/user/dto';
 
 describe('App e2e suite', () => {
   let app: INestApplication;
@@ -68,7 +69,7 @@ describe('App e2e suite', () => {
         return pactum.spec().post('/auth/signup').expectStatus(400);
       });
 
-      it('should signup with 201', () => {
+      it('should signup with 201 if valid body', () => {
         return pactum
           .spec()
           .post('/auth/signup')
@@ -123,7 +124,7 @@ describe('App e2e suite', () => {
           .expectStatus(403);
       });
 
-      it('should signin with 200', () => {
+      it('should signin with 200 if valid body', () => {
         return pactum
           .spec()
           .post('/auth/signin')
@@ -150,7 +151,7 @@ describe('App e2e suite', () => {
           .expectStatus(401);
       });
 
-      it('should get current user with 200', () => {
+      it('should get current user with 200 if valid headers', () => {
         return pactum
           .spec()
           .get('/users/me')
@@ -162,7 +163,37 @@ describe('App e2e suite', () => {
     });
 
     describe('Edit user', () => {
-      it.todo('should edit a user');
+      const editUserDto: EditUserDto = {
+        firstName: 'Homer',
+        lastName: 'Simpson',
+      };
+
+      it('should throw 401 if no auth headers provided', () => {
+        return pactum.spec().patch('/users').expectStatus(401);
+      });
+
+      it('should throw 401 if incorrect auth headers provided', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders({
+            Authorization: `Bearer somerandomtoken`,
+          })
+          .expectStatus(401);
+      });
+
+      it('should edit a user with 200 if valid headers and body', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .withBody(editUserDto)
+          .expectStatus(200)
+          .expectBodyContains(editUserDto.firstName)
+          .expectBodyContains(editUserDto.lastName);
+      });
     });
   });
 

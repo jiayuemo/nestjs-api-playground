@@ -1,3 +1,3 @@
-import { getUser } from './getUser.decorator';
+import { GetUser } from './getUser.decorator';
 
-export { getUser };
+export { GetUser };
