@@ -5,6 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from 'src/auth/dto';
 import { EditUserDto } from 'src/user/dto';
+import { CreateBookmarkDTO, EditBookmarkDTO } from 'src/bookmark/dto';
 
 describe('App e2e suite', () => {
   let app: INestApplication;
@@ -146,7 +147,7 @@ describe('App e2e suite', () => {
           .spec()
           .get('/users/me')
           .withHeaders({
-            Authorization: `Bearer somerandomtoken`,
+            Authorization: 'Bearer somerandomtoken',
           })
           .expectStatus(401);
       });
@@ -156,14 +157,14 @@ describe('App e2e suite', () => {
           .spec()
           .get('/users/me')
           .withHeaders({
-            Authorization: `Bearer $S{userAccessToken}`,
+            Authorization: 'Bearer $S{userAccessToken}',
           })
           .expectStatus(200);
       });
     });
 
     describe('Edit user', () => {
-      const editUserDto: EditUserDto = {
+      const editUserDTO: EditUserDto = {
         firstName: 'Homer',
         lastName: 'Simpson',
       };
@@ -177,7 +178,7 @@ describe('App e2e suite', () => {
           .spec()
           .patch('/users')
           .withHeaders({
-            Authorization: `Bearer somerandomtoken`,
+            Authorization: 'Bearer somerandomtoken',
           })
           .expectStatus(401);
       });
@@ -187,35 +188,236 @@ describe('App e2e suite', () => {
           .spec()
           .patch('/users')
           .withHeaders({
-            Authorization: `Bearer $S{userAccessToken}`,
+            Authorization: 'Bearer $S{userAccessToken}',
           })
-          .withBody(editUserDto)
+          .withBody(editUserDTO)
           .expectStatus(200)
-          .expectBodyContains(editUserDto.firstName)
-          .expectBodyContains(editUserDto.lastName);
+          .expectBodyContains(editUserDTO.firstName)
+          .expectBodyContains(editUserDTO.lastName);
       });
     });
   });
 
   describe('Bookmarks', () => {
-    describe('Create bookmark', () => {
-      it.todo('should create a bookmark');
+    describe('Get bookmarks', () => {
+      it('should throw 401 if no auth headers provided', () => {
+        return pactum.spec().get('/bookmarks').expectStatus(401);
+      });
+
+      it('should throw 401 if incorrect auth headers provided', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer somerandomtoken',
+          })
+          .expectStatus(401);
+      });
+
+      it('should get bookmarks with 200 if valid headers', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(200);
+      });
     });
 
-    describe('Get bookmarks', () => {
-      it.todo('should get a bookmark');
+    describe('Create bookmark', () => {
+      const createBookmarkDto: CreateBookmarkDTO = {
+        title: 'First Bookmark',
+        description: 'homepage',
+        link: 'www.google.com',
+      };
+
+      it('should throw 401 if no auth headers provided', () => {
+        return pactum.spec().post('/bookmarks').expectStatus(401);
+      });
+
+      it('should throw 401 if incorrect auth headers provided', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer somerandomtoken',
+          })
+          .expectStatus(401);
+      });
+
+      it('should throw 400 if invalid link provided in body', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .withBody({
+            ...createBookmarkDto,
+            link: 'invalidLink',
+          })
+          .expectStatus(400);
+      });
+
+      it('should create a bookmark with 201 if valid headers and body', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .withBody(createBookmarkDto)
+          .expectStatus(201)
+          .stores('bookmarkId', 'id');
+      });
     });
 
     describe('Get bookmark by id', () => {
-      it.todo('should get bookmark by id');
+      it('should throw 401 if no auth headers provided', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
+      it('should throw 401 if incorrect auth headers provided', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer somerandomtoken',
+          })
+          .expectStatus(401);
+      });
+
+      it('should throw 404 if valid headers but bookmark d/n exist', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '10000')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(404);
+      });
+
+      it.todo(
+        'should throw 404 if valid headers and bookmark exist but bookmark not owned by calling user',
+      );
+
+      it('should get bookmark by id with 200 if valid headers and param', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(200)
+          .expectBodyContains('$S{bookmarkId}');
+      });
     });
 
     describe('Edit bookmark by id', () => {
-      it.todo('should edit bookmark');
+      const editBookmarkDTO: EditBookmarkDTO = {
+        description: 'homepage edit',
+        link: 'www.yahoo.com',
+      };
+
+      it('should throw 401 if no auth headers provided', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
+      it('should throw 401 if incorrect auth headers provided', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer somerandomtoken',
+          })
+          .expectStatus(401);
+      });
+
+      it('should throw 400 if invalid link provided in body', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .withBody({
+            ...editBookmarkDTO,
+            link: 'invalidLink',
+          })
+          .expectStatus(400);
+      });
+
+      it.todo('should throw 404 if bookmark d/n exist');
+
+      it.todo(
+        'should throw 404 if bookmark exists but not owned by calling user',
+      );
+
+      it('should edit bookmark with 200 if valid headers and body', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .withBody(editBookmarkDTO)
+          .expectStatus(200)
+          .expectBodyContains(editBookmarkDTO.description)
+          .expectBodyContains(editBookmarkDTO.link);
+      });
     });
 
     describe('Delete bookmark by id', () => {
-      it.todo('should delete the bookmark');
+      it('should throw 401 if no auth headers provided', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
+      it('should throw 401 if incorrect auth headers provided', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer somerandomtoken',
+          })
+          .expectStatus(401);
+      });
+
+      it.todo('should throw 404 if bookmark d/n exist');
+
+      it.todo(
+        'should throw 404 if bookmark exists but not owned by calling user',
+      );
+
+      it('should delete the bookmark with 204 if valid headers and param id', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAccessToken}',
+          })
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(204);
+      });
     });
   });
 });
