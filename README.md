@@ -33,8 +33,14 @@ $ npm install
 ```
 
 ## Local Env Setup
+### Enviornment Variables
+Setup respective env variable files
+- Env vars are configured via their respective `.env.*` file in the `config/` directory
+- The prisma studio process and prisma ORM service for nest consumes from these config files via the `dotenv` cli npm pkg
+- The docker compose setup consumes env variables directly from the `docker-compose.yml` file at root
 
 ```bash
+# Ensure env variables are setup properly
 $ npm run db:dev:restart
 ```
 
@@ -59,6 +65,9 @@ $ npm run test
 
 # e2e tests
 $ npm run test:e2e
+
+# e2e tests in watch mode for TDD
+$ npm run test:e2e:watch
 
 # test coverage
 $ npm run test:cov
