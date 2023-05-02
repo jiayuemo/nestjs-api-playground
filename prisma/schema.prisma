@@ -10,36 +10,98 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  BASIC
+  OWNER
+  ADMIN
+}
+
 model User {
   // Standard data
-  id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  uuid      String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
   // Data identifying an entity
-  email     String     @unique
-  hash      String
-  firstName String?
-  lastName  String?
+  email     String  @unique
+  hash      String  @db.VarChar(255)
+  role      Role    @default(BASIC)
+
   // Relational data
-  bookmarks Bookmark[]
+  // One user can have many visits as a customer; part of a m-n cardinality
+  visits Visit[]
 
   // @@map(dbtable) to this encapsulating named model
   @@map("users")
 }
 
-model Bookmark {
+model Visit {
   // Standard data
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  uuid      String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
   // Data identifying an entity
-  title       String
-  description String?
-  link        String
+  visitedAt DateTime
+  rating    Float
+  highlight Json
+
   // Relational data
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
+  // Explicitly define the m-n cardinality between business and user via this join table
+  // A visit must be associated with one customer user; part of a m-n cardinality
+  user         User     @relation(fields: [userUuid], references: [uuid])
+  userUuid     String
+  // A visit must be associated with one business; part of a m-n cardinality
+  business     Business @relation(fields: [businessUuid], references: [uuid])
+  businessUuid String
 
   // @@map(dbtable) to this encapsulating named model
-  @@map("bookmarks")
+  @@map("visits")
+}
+
+model GeospatialIndex {
+  // Standard data
+  uuid      String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Data identifying an entity
+  location String @db.VarChar(255)
+
+  // Relational data
+  // One geospatial_index is tied to one business; part of a 1-1 cardinality
+  business     Business @relation(fields: [businessUuid], references: [uuid])
+  businessUuid String   @unique
+
+  // @@map(dbtable) to this encapsulating named model
+  @@map("geospatial_indexes")
+}
+
+model Business {
+  // Standard data
+  uuid      String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Data identifying an entity
+  name      String @db.VarChar(255)
+  address   String @db.VarChar(255)
+  city      String @db.VarChar(255)
+  state     String @db.VarChar(255)
+  country   String @db.VarChar(255)
+  latitude  Float
+  longitude Float
+
+  // Relational data
+  // One business has one geospatial_index; part of a 1-1 cardinality
+  GeospatialIndex GeospatialIndex?
+  // One business can have many visits; part of a m-n cardinality
+  visits          Visit[]
+
+  // @@map(dbtable) to this encapsulating named model
+  @@map("businesses")
 }
