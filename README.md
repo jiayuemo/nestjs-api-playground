@@ -57,6 +57,11 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## API Spec
+View the OPENAPI spec of the project
+> http://localhost:3333/api
+> http://localhost:3333/api-json
+
 ## Test
 
 ```bash
