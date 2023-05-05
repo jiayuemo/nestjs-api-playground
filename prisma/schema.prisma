@@ -24,7 +24,7 @@ model User {
   deletedAt DateTime?
 
   // Data identifying an entity
-  email String @unique
+  email String @unique @db.VarChar(255)
   hash  String @db.VarChar(255)
   role  Role   @default(BASIC)
 
@@ -33,7 +33,7 @@ model User {
   visits           Visit[]
   // One user can have one favorite business; part of a 1-n cardinality
   favoriteBusiness Business @relation(fields: [favBusinessUuid], references: [uuid])
-  favBusinessUuid  String
+  favBusinessUuid  String   @db.VarChar(255)
 
   // @@map(dbtable) to this encapsulating named model
   @@map("users")
@@ -55,10 +55,10 @@ model Visit {
   // Explicitly define the m-n cardinality between business and user via this join table
   // A visit must be associated with one customer user; part of a m-n cardinality
   user         User     @relation(fields: [userUuid], references: [uuid])
-  userUuid     String
+  userUuid     String   @db.VarChar(255)
   // A visit must be associated with one business; part of a m-n cardinality
   business     Business @relation(fields: [businessUuid], references: [uuid])
-  businessUuid String
+  businessUuid String   @db.VarChar(255)
 
   // @@map(dbtable) to this encapsulating named model
   @@map("visits")
@@ -77,7 +77,7 @@ model GeospatialIndex {
   // Relational data
   // One geospatial_index is tied to one business; part of a 1-1 cardinality
   business     Business @relation(fields: [businessUuid], references: [uuid])
-  businessUuid String   @unique
+  businessUuid String   @unique @db.VarChar(255)
 
   // @@map(dbtable) to this encapsulating named model
   @@map("geospatial_indexes")
