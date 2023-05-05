@@ -29,6 +29,7 @@ import {
 import { PaginatedRequestDto, PaginatedResponseDto } from 'src/util/dto';
 import { JwtGuard } from 'src/auth/guard';
 import { ApiOkPaginatedResponse } from 'src/util/decorator';
+import { GetUser } from 'src/auth/decorator';
 
 @ApiTags('core')
 @ApiBearerAuth()
@@ -38,7 +39,6 @@ import { ApiOkPaginatedResponse } from 'src/util/decorator';
 export class BusinessesController {
   constructor(private readonly businessesService: BusinessesService) {}
 
-  // Somehow, later use @GetUser('id') userId: number to access headers inside of func()
   @Post()
   @ApiCreatedResponse({
     description: 'The resource has been successfully created.',
@@ -46,8 +46,11 @@ export class BusinessesController {
   })
   @ApiOkResponse({ description: 'The exact same resource already exists.' })
   @ApiForbiddenResponse({ description: 'Forbidden.' })
-  create(@Body() createBusinessDto: CreateBusinessDto) {
-    return this.businessesService.create(createBusinessDto);
+  create(
+    @GetUser('uuid') userUuid: string,
+    @Body() createBusinessDto: CreateBusinessDto,
+  ) {
+    return this.businessesService.create(userUuid, createBusinessDto);
   }
 
   @Get()

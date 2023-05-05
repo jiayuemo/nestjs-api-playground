@@ -24,10 +24,10 @@ model User {
   deletedAt DateTime?
 
   // Data identifying an entity
-  email       String @unique @db.VarChar(255)
-  hash        String @db.VarChar(255)
-  role        Role   @default(BASIC)
-  displayName String @db.VarChar(255)
+  email String @unique @db.VarChar(255)
+  hash  String @db.VarChar(255)
+  role  Role   @default(BASIC)
+  name  String @db.VarChar(255)
 
   // Relational data
   // One user can have many visits as a customer; part of a m-n cardinality

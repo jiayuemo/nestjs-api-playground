@@ -5,16 +5,17 @@ import { Business } from '@prisma/client';
 
 @Injectable()
 export class BusinessesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Creates a resource
    * An idempotency guard check returns the resource if it already exists
    * Resource is considered the same if every field in the dto exactly matches an entity
+   * @param {string} userUuid
    * @param {CreateBusinessDto} dto
    * @returns {Promise<Business>}
    */
-  async create(dto: CreateBusinessDto): Promise<Business> {
+  async create(userUuid: string, dto: CreateBusinessDto): Promise<Business> {
     const existingBusiness = await this.prisma.business.findFirst({
       where: {
         ...dto,
@@ -26,6 +27,7 @@ export class BusinessesService {
     if (existingBusiness) return existingBusiness;
     const newBusiness = await this.prisma.business.create({
       data: {
+        ownerUuid: userUuid,
         ...dto,
       },
     });
