@@ -24,16 +24,16 @@ model User {
   deletedAt DateTime?
 
   // Data identifying an entity
-  email String @unique @db.VarChar(255)
-  hash  String @db.VarChar(255)
-  role  Role   @default(BASIC)
+  email       String @unique @db.VarChar(255)
+  hash        String @db.VarChar(255)
+  role        Role   @default(BASIC)
+  displayName String @db.VarChar(255)
 
   // Relational data
   // One user can have many visits as a customer; part of a m-n cardinality
-  visits           Visit[]
-  // One user can have one favorite business; part of a 1-n cardinality
-  favoriteBusiness Business @relation(fields: [favBusinessUuid], references: [uuid])
-  favBusinessUuid  String   @db.VarChar(255)
+  visits     Visit[]
+  // A user can own/manage multiple businesses - ignore joint ownership; part of a 1-n cardinality
+  businesses Business[]
 
   // @@map(dbtable) to this encapsulating named model
   @@map("users")
@@ -101,11 +101,13 @@ model Business {
 
   // Relational data
   // One business has one geospatial_index; part of a 1-1 cardinality
-  GeospatialIndex  GeospatialIndex?
+  GeospatialIndex GeospatialIndex?
   // One business can have many visits; part of a m-n cardinality
-  visits           Visit[]
-  // One business can be favoritedBy many users; part of a 1-n cardinality
-  favoritedByUsers User[]
+  visits          Visit[]
+  // A business can be owned/managed by one user; part of a 1-n cardinality
+  // ignore joint ownership and management scenarios in our model which would create a m-n
+  owner           User             @relation(fields: [ownerUuid], references: [uuid])
+  ownerUuid       String           @db.VarChar(255)
 
   // @@map(dbtable) to this encapsulating named model
   @@map("businesses")
