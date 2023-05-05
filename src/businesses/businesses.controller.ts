@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiTags,
@@ -20,9 +22,12 @@ import {
   CreateBusinessDto,
   UpdateBusinessDto,
 } from './dto';
+import { PaginatedRequestDto, PaginatedResponseDto } from 'src/util/dto';
+import { ApiOkPaginatedResponse } from 'src/util/decorator';
 
 @ApiTags('core')
 @ApiBearerAuth()
+@ApiExtraModels(PaginatedResponseDto)
 @Controller('businesses')
 export class BusinessesController {
   constructor(private readonly businessesService: BusinessesService) {}
@@ -39,8 +44,11 @@ export class BusinessesController {
   }
 
   @Get()
-  findAll() {
-    return this.businessesService.findAll();
+  @ApiOkPaginatedResponse(BusinessResponseDto)
+  findAllPaginated(@Query() paginatedRequestDto: PaginatedRequestDto) {
+    const { take, page } = paginatedRequestDto;
+    const skip = (page - 1) * take;
+    return this.businessesService.findAllPaginated(skip, take);
   }
 
   @Get(':id')
