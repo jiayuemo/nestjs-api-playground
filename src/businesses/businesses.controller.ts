@@ -7,6 +7,10 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -23,15 +27,18 @@ import {
   UpdateBusinessDto,
 } from './dto';
 import { PaginatedRequestDto, PaginatedResponseDto } from 'src/util/dto';
+import { JwtGuard } from 'src/auth/guard';
 import { ApiOkPaginatedResponse } from 'src/util/decorator';
 
 @ApiTags('core')
 @ApiBearerAuth()
 @ApiExtraModels(PaginatedResponseDto)
+@UseGuards(JwtGuard)
 @Controller('businesses')
 export class BusinessesController {
   constructor(private readonly businessesService: BusinessesService) {}
 
+  // Somehow, later use @GetUser('id') userId: number to access headers inside of func()
   @Post()
   @ApiCreatedResponse({
     description: 'The resource has been successfully created.',
@@ -51,23 +58,24 @@ export class BusinessesController {
     return this.businessesService.findAllPaginated(skip, take);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.businessesService.findOne(+id);
+  @Get(':uuid')
+  findOne(@Param('uuid') uuid: string) {
+    return this.businessesService.findOne(uuid);
   }
 
-  @Patch(':id')
+  @Patch(':uuid')
   @ApiForbiddenResponse({ description: 'Forbidden.' })
   update(
-    @Param('id') id: string,
+    @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body() updateBusinessDto: UpdateBusinessDto,
   ) {
-    return this.businessesService.update(+id, updateBusinessDto);
+    return this.businessesService.update(uuid, updateBusinessDto);
   }
 
-  @Delete(':id')
+  @Delete(':uuid')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiForbiddenResponse({ description: 'Forbidden.' })
-  remove(@Param('id') id: string) {
-    return this.businessesService.remove(+id);
+  remove(@Param('uuid') uuid: string) {
+    return this.businessesService.remove(uuid);
   }
 }
