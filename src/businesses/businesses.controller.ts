@@ -19,6 +19,7 @@ import {
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { BusinessesService } from './businesses.service';
 import {
@@ -31,8 +32,9 @@ import { JwtGuard } from 'src/auth/guard';
 import { ApiOkPaginatedResponse } from 'src/util/decorator';
 import { GetUser } from 'src/auth/decorator';
 
-@ApiTags('core')
+@ApiTags('businesses')
 @ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Unauthorized.' })
 @ApiExtraModels(PaginatedResponseDto)
 @UseGuards(JwtGuard)
 @Controller('businesses')
@@ -44,7 +46,10 @@ export class BusinessesController {
     description: 'The resource has been successfully created.',
     type: BusinessResponseDto,
   })
-  @ApiOkResponse({ description: 'The exact same resource already exists.' })
+  @ApiOkResponse({
+    description: 'The exact same resource already exists.',
+    type: BusinessResponseDto,
+  })
   @ApiForbiddenResponse({ description: 'Forbidden.' })
   create(
     @GetUser('uuid') userUuid: string,

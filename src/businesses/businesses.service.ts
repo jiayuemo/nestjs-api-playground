@@ -1,11 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  LoggerService,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBusinessDto, UpdateBusinessDto } from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Business } from '@prisma/client';
 
 @Injectable()
 export class BusinessesService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger: LoggerService;
+  constructor(private readonly prisma: PrismaService) {
+    this.logger = new Logger(BusinessesService.name);
+  }
 
   /**
    * Creates a resource
@@ -19,9 +27,8 @@ export class BusinessesService {
     const existingBusiness = await this.prisma.business.findFirst({
       where: {
         ...dto,
-        deletedAt: {
-          not: null,
-        },
+        ownerUuid: userUuid,
+        deletedAt: null,
       },
     });
     if (existingBusiness) return existingBusiness;
@@ -46,9 +53,7 @@ export class BusinessesService {
       skip: skip,
       take: take,
       where: {
-        deletedAt: {
-          not: null,
-        },
+        deletedAt: null,
       },
     });
     return businesses;
@@ -65,9 +70,7 @@ export class BusinessesService {
     const business = await this.prisma.business.findFirst({
       where: {
         uuid: uuid,
-        deletedAt: {
-          not: null,
-        },
+        deletedAt: null,
       },
     });
     if (!business) throw new NotFoundException();
@@ -86,9 +89,7 @@ export class BusinessesService {
     const business = await this.prisma.business.findFirst({
       where: {
         uuid: uuid,
-        deletedAt: {
-          not: null,
-        },
+        deletedAt: null,
       },
     });
     if (!business) throw new NotFoundException();
@@ -113,9 +114,7 @@ export class BusinessesService {
     const business = await this.prisma.business.findFirst({
       where: {
         uuid: uuid,
-        deletedAt: {
-          not: null,
-        },
+        deletedAt: null,
       },
     });
     if (!business) return;
