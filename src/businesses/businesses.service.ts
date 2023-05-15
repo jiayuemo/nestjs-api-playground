@@ -7,6 +7,7 @@ import {
 import { CreateBusinessDto, UpdateBusinessDto } from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Business } from '@prisma/client';
+import { PaginatedRequestDto, PaginatedResponseDto } from 'src/util/dto';
 
 @Injectable()
 export class BusinessesService {
@@ -44,19 +45,35 @@ export class BusinessesService {
   /**
    * Finds all resources using offset pagination
    * Will not include soft deleted resources
-   * @param {number} skip - the number of resources to skip over
-   * @param {number} take - the number of resources to return
-   * @returns {Promise<Business[]>}
+   * @param {PaginatedRequestDto} paginatedRequestDto
+   * @returns {Promise<PaginatedResponseDto<Business>>}
    */
-  async findAllPaginated(skip: number, take: number): Promise<Business[]> {
-    const businesses = await this.prisma.business.findMany({
-      skip: skip,
+  async findAllPaginated(
+    paginatedRequestDto: PaginatedRequestDto,
+  ): Promise<PaginatedResponseDto<Business>> {
+    const { take, page } = paginatedRequestDto;
+    const skip = (page - 1) * take;
+    const where = {
+      deletedAt: null,
+    };
+
+    const [businessesCount, data] = await this.prisma.$transaction([
+      this.prisma.business.count({
+        where,
+      }),
+      this.prisma.business.findMany({
+        skip: skip,
+        take: take,
+        where,
+      }),
+    ]);
+
+    return {
+      total: businessesCount,
       take: take,
-      where: {
-        deletedAt: null,
-      },
-    });
-    return businesses;
+      page: page,
+      results: data,
+    };
   }
 
   /**

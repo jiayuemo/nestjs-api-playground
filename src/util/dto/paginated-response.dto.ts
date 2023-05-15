@@ -1,14 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PaginatedResponseDto<TData> {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Total number of items',
+  })
   total: number;
 
-  @ApiProperty()
-  limit: number;
+  @ApiProperty({
+    description: 'The number of items to return per page',
+  })
+  take: number;
 
-  @ApiProperty()
-  offset: number;
+  @ApiProperty({
+    description: 'The page number to retrieve',
+  })
+  page: number;
 
   results: TData[];
 }
